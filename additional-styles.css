@@ -385,7 +385,7 @@
 /* ========== Compact Input Row (Edit Mode) ========== */
 .input-row {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 8px;
     background: var(--background-color);
     border: 1px solid var(--border-color);
