@@ -425,6 +425,14 @@
 
 .input-row textarea::placeholder {
     color: var(--text-muted);
+    line-height: normal;
+    transform: translateY(0);
+}
+
+.input-row textarea:placeholder-shown {
+    line-height: 40px;
+    padding: 0 4px;
+    height: 40px;
 }
 
 .icon-btn {
