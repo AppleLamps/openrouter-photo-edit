@@ -409,13 +409,13 @@
     flex: 1;
     border: none;
     background: transparent;
-    padding: 8px 4px;
+    padding: 11px 4px;
     font-size: 0.95rem;
     resize: none;
     overflow-y: hidden;
-    min-height: 24px;
+    min-height: 20px;
     max-height: 200px;
-    line-height: 1.5;
+    line-height: 1.3;
     font-family: inherit;
 }
 
