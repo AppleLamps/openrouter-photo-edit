@@ -30,31 +30,36 @@
             </div>
         </div>
 
-        <!-- Upload Section (Edit Mode) -->
-        <div class="upload-section" id="uploadSection" style="display: none;">
-            <div class="upload-area" id="uploadArea">
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                <div class="upload-icon">
-                    <i data-lucide="image-plus"></i>
-                </div>
-                <p class="upload-text">Drag & drop your photo here or click to browse</p>
-                <p class="upload-hint">Supports JPG, PNG, WEBP</p>
-            </div>
-        </div>
-
         <!-- Editor Section (Edit Mode) -->
         <div class="editor-section" id="editorSection" style="display: none;">
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
             <div class="prompt-container">
-                <div class="input-group">
-                    <textarea id="editPrompt" rows="1"
-                        placeholder="Describe the edits you want (e.g., 'Make the sky bluer', 'Remove background')"></textarea>
-                    <button id="enhancePrompt" class="btn-secondary">
-                        <i data-lucide="wand"></i> Enhance Prompt
+                <div class="model-selector-row">
+                    <button id="selectEditModelBtn" class="btn-secondary model-selector-btn">
+                        <i data-lucide="cpu"></i>
+                        <span id="selectedEditModelName">GPT-5 Image Mini</span>
+                        <i data-lucide="chevron-down"></i>
                     </button>
                 </div>
-                <button id="applyEdit" class="btn-primary">
-                    <i data-lucide="sparkles"></i> Apply AI Edit
-                </button>
+                <div class="input-row" id="editInputRow">
+                    <button id="uploadBtn" class="icon-btn upload-btn" title="Upload image">
+                        <i data-lucide="image-plus"></i>
+                    </button>
+                    <div id="uploadedThumbnail" class="uploaded-thumbnail" style="display: none;">
+                        <img id="thumbnailImg" src="" alt="Uploaded image">
+                        <button id="removeThumbnail" class="remove-thumbnail" title="Remove image">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <textarea id="editPrompt" rows="1"
+                        placeholder="Upload a photo and describe the edits you want..."></textarea>
+                    <button id="enhancePrompt" class="icon-btn" title="Enhance prompt">
+                        <i data-lucide="wand"></i>
+                    </button>
+                    <button id="applyEdit" class="icon-btn primary-icon-btn" title="Apply AI edit">
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="image-compare-container">
@@ -135,17 +140,34 @@
         </div>
     </div>
 
-    <!-- Model Selector Modal -->
+    <!-- Model Selector Modal (Generation) -->
     <div class="modal-overlay" id="modelModalOverlay">
         <div class="modal" id="modelModal">
             <div class="modal-header">
-                <h2>Select Image Model</h2>
+                <h2>Select Generation Model</h2>
                 <button class="modal-close" id="closeModelModal" title="Close" aria-label="Close modal">
                     <i data-lucide="x"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="model-list">
+                <div class="model-list" id="generateModelList">
+                    <!-- Model list will be dynamically generated from JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Selector Modal (Edit) -->
+    <div class="modal-overlay" id="editModelModalOverlay">
+        <div class="modal" id="editModelModal">
+            <div class="modal-header">
+                <h2>Select Edit Model</h2>
+                <button class="modal-close" id="closeEditModelModal" title="Close" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="model-list" id="editModelList">
                     <!-- Model list will be dynamically generated from JavaScript -->
                 </div>
             </div>

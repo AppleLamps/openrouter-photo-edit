@@ -7,14 +7,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // DOM Elements - Upload & Edit Mode
     /** @type {HTMLInputElement|null} */
     const fileInput = document.getElementById('fileInput');
-    const uploadArea = document.getElementById('uploadArea');
-    const uploadSection = document.getElementById('uploadSection');
     const editorSection = document.getElementById('editorSection');
     const editPrompt = document.getElementById('editPrompt');
     const enhancePromptBtn = document.getElementById('enhancePrompt');
     const applyEditBtn = document.getElementById('applyEdit');
     const originalImageContainer = document.getElementById('originalImageContainer');
     const editedImageContainer = document.getElementById('editedImageContainer');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadedThumbnail = document.getElementById('uploadedThumbnail');
+    const thumbnailImg = document.getElementById('thumbnailImg');
+    const removeThumbnail = document.getElementById('removeThumbnail');
+    const editInputRow = document.getElementById('editInputRow');
 
     // DOM Elements - Generation Mode
     const generationSection = document.getElementById('generationSection');
@@ -28,9 +31,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // DOM Elements - Mode Toggle
     const modeBtns = document.querySelectorAll('.mode-btn');
 
-    // DOM Elements - Modal
+    // DOM Elements - Edit Model Selector
+    const selectEditModelBtn = document.getElementById('selectEditModelBtn');
+    const selectedEditModelName = document.getElementById('selectedEditModelName');
+
+    // DOM Elements - Generation Model Modal
     const modelModalOverlay = document.getElementById('modelModalOverlay');
     const closeModelModal = document.getElementById('closeModelModal');
+
+    // DOM Elements - Edit Model Modal
+    const editModelModalOverlay = document.getElementById('editModelModalOverlay');
+    const closeEditModelModal = document.getElementById('closeEditModelModal');
 
     // DOM Elements - Lightbox
     const lightboxOverlay = document.getElementById('lightboxOverlay');
@@ -49,10 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
     init();
 
     /**
-     * Render model list dynamically from JavaScript
+     * Render generation model list dynamically from JavaScript
      */
     function renderModelList() {
-        const modelList = document.querySelector('.model-list');
+        const modelList = document.getElementById('generateModelList');
         if (!modelList) return;
 
         const models = getAvailableModels();
@@ -72,8 +83,42 @@ document.addEventListener('DOMContentLoaded', function () {
         `).join('');
 
         // Re-attach event listeners
-        document.querySelectorAll('.model-option').forEach(option => {
+        modelList.querySelectorAll('.model-option').forEach(option => {
             option.addEventListener('click', () => selectModel(option));
+        });
+
+        // Reinitialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    /**
+     * Render edit model list dynamically from JavaScript
+     */
+    function renderEditModelList() {
+        const modelList = document.getElementById('editModelList');
+        if (!modelList) return;
+
+        const models = getAvailableModels();
+        const currentModel = getEditModel();
+
+        modelList.innerHTML = Object.entries(models).map(([id, info]) => `
+            <div class="model-option ${id === currentModel ? 'selected' : ''}" data-model="${id}">
+                <div class="model-info">
+                    <div class="model-name">${escapeHtml(info.name)}</div>
+                    <div class="model-description">${escapeHtml(info.description)}</div>
+                    <div class="model-id">${escapeHtml(id)}</div>
+                </div>
+                <div class="model-check">
+                    <i data-lucide="check"></i>
+                </div>
+            </div>
+        `).join('');
+
+        // Re-attach event listeners
+        modelList.querySelectorAll('.model-option').forEach(option => {
+            option.addEventListener('click', () => selectEditModel(option));
         });
 
         // Reinitialize Lucide icons
@@ -98,25 +143,30 @@ document.addEventListener('DOMContentLoaded', function () {
      * @returns {void}
      */
     function init() {
-        // Render model list dynamically
+        // Render model lists dynamically
         renderModelList();
+        renderEditModelList();
 
-        // File upload via click
-        uploadArea.addEventListener('click', () => {
+        // File upload via click on upload button
+        uploadBtn.addEventListener('click', () => {
             fileInput.click();
         });
 
         // File input change
         fileInput.addEventListener('change', handleFileUpload);
 
-        // Drag and drop events
-        uploadArea.addEventListener('dragover', handleDragOver);
-        uploadArea.addEventListener('dragleave', handleDragLeave);
-        uploadArea.addEventListener('drop', handleDrop);
+        // Drag and drop events on input row
+        editInputRow.addEventListener('dragover', handleDragOver);
+        editInputRow.addEventListener('dragleave', handleDragLeave);
+        editInputRow.addEventListener('drop', handleDrop);
+
+        // Remove thumbnail button
+        removeThumbnail.addEventListener('click', removeUploadedImage);
 
         // Edit mode button events
         enhancePromptBtn.addEventListener('click', enhanceUserPrompt);
         applyEditBtn.addEventListener('click', applyAIEdit);
+        selectEditModelBtn.addEventListener('click', openEditModelModal);
 
         // Generation mode button events
         enhanceGeneratePromptBtn.addEventListener('click', enhanceGenerateUserPrompt);
@@ -128,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.addEventListener('click', () => switchMode(btn.dataset.mode));
         });
 
-        // Modal events
+        // Generation Model Modal events
         closeModelModal.addEventListener('click', closeModal);
         modelModalOverlay.addEventListener('click', (e) => {
             if (e.target === modelModalOverlay) {
@@ -136,15 +186,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Model selection events are attached in renderModelList()
+        // Edit Model Modal events
+        closeEditModelModal.addEventListener('click', closeEditModal);
+        editModelModalOverlay.addEventListener('click', (e) => {
+            if (e.target === editModelModalOverlay) {
+                closeEditModal();
+            }
+        });
 
-        // Keyboard events for modal
+        // Model selection events are attached in renderModelList() and renderEditModelList()
+
+        // Keyboard events for modals
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (lightboxOverlay.classList.contains('active')) {
                     closeLightboxModal();
                 } else if (modelModalOverlay.classList.contains('active')) {
                     closeModal();
+                } else if (editModelModalOverlay.classList.contains('active')) {
+                    closeEditModal();
                 }
             }
         });
@@ -226,11 +286,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Show/hide sections
         if (mode === 'edit') {
-            uploadSection.style.display = 'block';
             editorSection.style.display = 'block';
             generationSection.style.display = 'none';
         } else {
-            uploadSection.style.display = 'none';
             editorSection.style.display = 'none';
             generationSection.style.display = 'block';
         }
@@ -241,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * Open the model selector modal
+     * Open the generation model selector modal
      */
     function openModelModal() {
         // Refresh model list to ensure it's up to date
@@ -251,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * Close the model selector modal
+     * Close the generation model selector modal
      */
     function closeModal() {
         modelModalOverlay.classList.remove('active');
@@ -259,15 +317,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * Select a model from the modal
+     * Open the edit model selector modal
+     */
+    function openEditModelModal() {
+        // Refresh model list to ensure it's up to date
+        renderEditModelList();
+        editModelModalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    /**
+     * Close the edit model selector modal
+     */
+    function closeEditModal() {
+        editModelModalOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * Select a generation model from the modal
      * @param {HTMLElement} option - The clicked model option element
      */
     function selectModel(option) {
         const modelId = option.dataset.model;
 
-        // Update selection state
-        const modelOptions = document.querySelectorAll('.model-option');
-        modelOptions.forEach(opt => opt.classList.remove('selected'));
+        // Update selection state in this modal only
+        const modelList = document.getElementById('generateModelList');
+        modelList.querySelectorAll('.model-option').forEach(opt => opt.classList.remove('selected'));
         option.classList.add('selected');
 
         // Update the API
@@ -279,6 +355,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Close the modal
         closeModal();
+
+        // Reinitialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    /**
+     * Select an edit model from the modal
+     * @param {HTMLElement} option - The clicked model option element
+     */
+    function selectEditModel(option) {
+        const modelId = option.dataset.model;
+
+        // Update selection state in this modal only
+        const modelList = document.getElementById('editModelList');
+        modelList.querySelectorAll('.model-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+
+        // Update the API
+        setEditModel(modelId);
+
+        // Update the button text
+        const modelName = option.querySelector('.model-name').textContent;
+        selectedEditModelName.textContent = modelName;
+
+        // Close the modal
+        closeEditModal();
 
         // Reinitialize icons
         if (typeof lucide !== 'undefined') {
@@ -344,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function handleDragOver(event) {
         event.preventDefault();
-        uploadArea.classList.add('drag-over');
+        editInputRow.classList.add('drag-over');
     }
 
     /**
@@ -353,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function handleDragLeave(event) {
         event.preventDefault();
-        uploadArea.classList.remove('drag-over');
+        editInputRow.classList.remove('drag-over');
     }
 
     /**
@@ -362,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function handleDrop(event) {
         event.preventDefault();
-        uploadArea.classList.remove('drag-over');
+        editInputRow.classList.remove('drag-over');
 
         const file = event.dataTransfer.files[0];
         if (!file) return;
@@ -373,6 +477,47 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             showError(validation.error);
         }
+    }
+
+    /**
+     * Remove uploaded image
+     */
+    function removeUploadedImage() {
+        cleanupPreviousImage();
+        currentImageFile = null;
+        
+        // Hide thumbnail
+        uploadedThumbnail.style.display = 'none';
+        thumbnailImg.src = '';
+        
+        // Show upload button
+        uploadBtn.style.display = 'flex';
+        
+        // Reset original image container
+        originalImageContainer.innerHTML = `
+            <div class="image-placeholder">
+                <i data-lucide="image"></i>
+                <p>No image uploaded</p>
+            </div>
+        `;
+        
+        // Reset edited image container
+        editedImageContainer.innerHTML = `
+            <div class="image-placeholder">
+                <i data-lucide="image-off"></i>
+                <p>No edits applied yet</p>
+            </div>
+        `;
+        
+        currentEditedImage = null;
+        
+        // Reinitialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        // Reset file input
+        fileInput.value = '';
     }
 
     /**
@@ -407,7 +552,6 @@ document.addEventListener('DOMContentLoaded', function () {
     async function processUploadedFile(file) {
         try {
             hideError();
-            showLoading('Processing your image...');
 
             // Cleanup previous image
             cleanupPreviousImage();
@@ -417,13 +561,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // For display, use Object URL (more memory efficient)
             currentObjectUrl = URL.createObjectURL(file);
+            
+            // Show thumbnail in input row
+            thumbnailImg.src = currentObjectUrl;
+            uploadedThumbnail.style.display = 'block';
+            uploadBtn.style.display = 'none';
+            
+            // Display in original image container
             displayImage('originalImageContainer', currentObjectUrl, file.name, () => {
                 // Lazy load base64 for lightbox if needed
                 getBase64Image().then(base64 => openLightbox(base64));
             });
-
-            // Show success notification
-            showSuccess(`Image "${file.name}" uploaded successfully!`);
 
             // Clear edited image
             editedImageContainer.innerHTML = '';
@@ -446,8 +594,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error processing file:', error);
             showError(getUserFriendlyError(error));
-        } finally {
-            hideLoading();
         }
     }
 
@@ -627,12 +773,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function setButtonsDisabled(disabled) {
         applyEditBtn.disabled = disabled;
         enhancePromptBtn.disabled = disabled;
+        selectEditModelBtn.disabled = disabled;
+        uploadBtn.disabled = disabled;
         if (disabled) {
             applyEditBtn.style.opacity = '0.6';
             enhancePromptBtn.style.opacity = '0.6';
+            selectEditModelBtn.style.opacity = '0.6';
+            uploadBtn.style.opacity = '0.6';
         } else {
             applyEditBtn.style.opacity = '1';
             enhancePromptBtn.style.opacity = '1';
+            selectEditModelBtn.style.opacity = '1';
+            uploadBtn.style.opacity = '1';
         }
     }
 

@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt, image } = req.body;
+        const { prompt, image, model } = req.body;
 
         // Validate inputs
         if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
@@ -31,6 +31,9 @@ export default async function handler(req, res) {
         // Sanitize prompt
         const sanitizedPrompt = prompt.replace(/[\x00-\x1F\x7F]/g, '').substring(0, 2000).trim();
 
+        // Use provided model or default
+        const selectedModel = model || 'openai/gpt-5-image-mini';
+
         const response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
             headers: {
@@ -40,7 +43,7 @@ export default async function handler(req, res) {
                 'X-Title': 'AI Photo Editor'
             },
             body: JSON.stringify({
-                model: 'openai/gpt-5-image-mini',
+                model: selectedModel,
                 messages: [
                     {
                         role: 'user',

@@ -67,6 +67,12 @@ const IMAGE_GENERATION_MODELS = {
 let currentGenerationModel = 'black-forest-labs/flux.2-pro';
 
 /**
+ * Current selected edit model ID
+ * @type {string}
+ */
+let currentEditModel = 'openai/gpt-5-image-mini';
+
+/**
  * Rate limiter for API calls (10 requests per minute)
  * @type {RateLimiter}
  */
@@ -132,10 +138,11 @@ async function analyzeImage(base64Image, prompt = "Analyze this image and descri
  * Edit an image using AI
  * @param {string} base64Image - Base64 encoded image (data:image/...;base64,...)
  * @param {string} prompt - Editing instructions for the AI
+ * @param {string|null} [model=null] - Optional model ID to use for editing
  * @returns {Promise<string>} Base64 encoded edited image (data:image/...;base64,...)
  * @throws {Error} If editing fails, no image is returned, or rate limit is exceeded
  */
-async function editImage(base64Image, prompt) {
+async function editImage(base64Image, prompt, model = null) {
     // Check rate limit
     checkRateLimit();
 
@@ -145,6 +152,8 @@ async function editImage(base64Image, prompt) {
         throw new Error('Invalid prompt provided');
     }
 
+    const selectedModel = model || currentEditModel;
+
     try {
         const response = await fetch('/api/edit', {
             method: 'POST',
@@ -153,7 +162,8 @@ async function editImage(base64Image, prompt) {
             },
             body: JSON.stringify({
                 prompt: sanitizedPrompt,
-                image: base64Image
+                image: base64Image,
+                model: selectedModel
             })
         });
 
@@ -355,6 +365,25 @@ function getGenerationModel() {
  */
 function getAvailableModels() {
     return IMAGE_GENERATION_MODELS;
+}
+
+/**
+ * Set the current edit model
+ * @param {string} modelId - Model ID to use for editing
+ * @returns {void}
+ */
+function setEditModel(modelId) {
+    if (IMAGE_GENERATION_MODELS[modelId]) {
+        currentEditModel = modelId;
+    }
+}
+
+/**
+ * Get the current edit model
+ * @returns {string} Current edit model ID
+ */
+function getEditModel() {
+    return currentEditModel;
 }
 
 /**
