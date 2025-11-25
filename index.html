@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Photo Editor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="additional-styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>AI Photo Editor</h1>
+            <p class="subtitle">Transform your photos with AI-powered editing</p>
+        </header>
+
+        <!-- Mode Toggle -->
+        <div class="mode-toggle-container">
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="generate">
+                    <i data-lucide="image-plus"></i>
+                    Generate Mode
+                </button>
+                <button class="mode-btn" data-mode="edit">
+                    <i data-lucide="pencil"></i>
+                    Edit Mode
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Section (Edit Mode) -->
+        <div class="upload-section" id="uploadSection" style="display: none;">
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                <div class="upload-icon">
+                    <i data-lucide="image-plus"></i>
+                </div>
+                <p class="upload-text">Drag & drop your photo here or click to browse</p>
+                <p class="upload-hint">Supports JPG, PNG, WEBP</p>
+            </div>
+        </div>
+
+        <!-- Editor Section (Edit Mode) -->
+        <div class="editor-section" id="editorSection" style="display: none;">
+            <div class="prompt-container">
+                <div class="input-group">
+                    <textarea id="editPrompt" rows="1"
+                        placeholder="Describe the edits you want (e.g., 'Make the sky bluer', 'Remove background')"></textarea>
+                    <button id="enhancePrompt" class="btn-secondary">
+                        <i data-lucide="wand"></i> Enhance Prompt
+                    </button>
+                </div>
+                <button id="applyEdit" class="btn-primary">
+                    <i data-lucide="sparkles"></i> Apply AI Edit
+                </button>
+            </div>
+
+            <div class="image-compare-container">
+                <div class="image-container">
+                    <h3>Original Photo</h3>
+                    <div class="image-wrapper" id="originalImageContainer">
+                        <div class="image-placeholder">
+                            <i data-lucide="image"></i>
+                            <p>No image uploaded</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <h3>Edited Photo</h3>
+                    <div class="image-wrapper" id="editedImageContainer">
+                        <div class="image-placeholder">
+                            <i data-lucide="image-off"></i>
+                            <p>No edits applied yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generation Section (Generate Mode) -->
+        <div class="generation-section" id="generationSection">
+            <div class="prompt-container">
+                <div class="model-selector-row">
+                    <button id="selectModelBtn" class="btn-secondary model-selector-btn">
+                        <i data-lucide="cpu"></i>
+                        <span id="selectedModelName">FLUX.2 Pro</span>
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                </div>
+                <div class="input-group">
+                    <textarea id="generatePrompt" rows="1"
+                        placeholder="Describe the image you want to create (e.g., 'A sunset over mountains', 'Portrait of a cat')"></textarea>
+                    <button id="enhanceGeneratePrompt" class="btn-secondary">
+                        <i data-lucide="wand"></i> Enhance Prompt
+                    </button>
+                </div>
+                <button id="generateImage" class="btn-primary">
+                    <i data-lucide="sparkles"></i> Generate Image
+                </button>
+            </div>
+
+            <div class="generated-image-container">
+                <div class="image-container full-width">
+                    <h3>Generated Image</h3>
+                    <div class="image-wrapper" id="generatedImageContainer">
+                        <div class="image-placeholder">
+                            <i data-lucide="image"></i>
+                            <p>No image generated yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-section">
+            <div class="loading-indicator" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing your image...</p>
+            </div>
+            <div class="success-message" id="successMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <button class="lightbox-close" id="closeLightbox" title="Close" aria-label="Close lightbox">
+            <i data-lucide="x"></i>
+        </button>
+        <div class="lightbox-content">
+            <img id="lightboxImage" src="" alt="Full size image">
+        </div>
+    </div>
+
+    <!-- Model Selector Modal -->
+    <div class="modal-overlay" id="modelModalOverlay">
+        <div class="modal" id="modelModal">
+            <div class="modal-header">
+                <h2>Select Image Model</h2>
+                <button class="modal-close" id="closeModelModal" title="Close" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="model-list">
+                    <!-- Model list will be dynamically generated from JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.303.0/dist/umd/lucide.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

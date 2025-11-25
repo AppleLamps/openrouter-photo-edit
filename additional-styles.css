@@ -1,0 +1,427 @@
+/* Additional styles for drag and drop functionality */
+.upload-area.drag-over {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.02);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Button icon alignment */
+.btn-primary i,
+.btn-secondary i {
+    flex-shrink: 0;
+}
+
+/* Image container hover state */
+.image-container:hover {
+    border-color: var(--text-muted);
+}
+
+/* Smoother image loading */
+.image-wrapper img {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Focus states for accessibility */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.input-group input:focus-visible {
+    outline: none;
+}
+
+/* Enhanced upload area when image is present */
+.upload-area.has-image {
+    padding: 24px;
+    border-style: solid;
+}
+
+.upload-area.has-image:hover {
+    border-color: var(--primary-color);
+}
+
+/* ========== Mode Toggle ========== */
+.mode-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.mode-toggle {
+    display: inline-flex;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    gap: 4px;
+}
+
+.mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mode-btn:hover {
+    color: var(--text-color);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.mode-btn.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.mode-btn.active:hover {
+    background: var(--primary-hover);
+}
+
+.mode-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+/* ========== Generation Section ========== */
+.generation-section {
+    margin-bottom: 32px;
+}
+
+.model-selector-row {
+    margin-bottom: 16px;
+}
+
+.model-selector-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.model-selector-btn span {
+    flex: 1;
+    font-weight: 500;
+}
+
+.model-selector-btn i:first-child {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.model-selector-btn i:last-child {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+}
+
+.generated-image-container {
+    margin-top: 0;
+}
+
+.image-container.full-width {
+    max-width: 100%;
+}
+
+.image-container.full-width .image-wrapper {
+    min-height: 400px;
+}
+
+/* ========== Modal Styles ========== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: var(--container-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 90%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow: hidden;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.2s ease;
+}
+
+.modal-overlay.active .modal {
+    transform: scale(1) translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    background: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.modal-close i {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: calc(85vh - 80px);
+}
+
+/* ========== Model List ========== */
+.model-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.model-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--background-color);
+}
+
+.model-option:hover {
+    border-color: var(--text-muted);
+    background: var(--card-bg);
+}
+
+.model-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.model-info {
+    flex: 1;
+}
+
+.model-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.model-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.model-id {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    background: var(--secondary-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.model-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: transparent;
+    transition: var(--transition);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.model-option.selected .model-check {
+    background: var(--primary-color);
+    color: white;
+}
+
+.model-check i {
+    width: 14px;
+    height: 14px;
+}
+
+/* ========== Lightbox ========== */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 20px;
+}
+
+.lightbox-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2001;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.lightbox-close i {
+    width: 24px;
+    height: 24px;
+}
+
+.lightbox-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: lightboxZoomIn 0.3s ease;
+}
+
+@keyframes lightboxZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Make images in wrappers clickable */
+.image-wrapper img {
+    cursor: zoom-in;
+    transition: transform 0.2s ease;
+}
+
+.image-wrapper img:hover {
+    transform: scale(1.02);
+}
+
+/* ========== Responsive Adjustments ========== */
+@media (max-width: 600px) {
+    .mode-toggle {
+        width: 100%;
+    }
+
+    .mode-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    .modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .modal-body {
+        max-height: calc(90vh - 80px);
+    }
+
+    .model-option {
+        padding: 14px;
+    }
+}
