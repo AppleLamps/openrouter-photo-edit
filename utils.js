@@ -4,6 +4,9 @@
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_PROMPT_LENGTH = 2000;
+const MAX_IMAGE_DIMENSION = 2048; // Max width/height for API uploads
+const MAX_BASE64_SIZE_MB = 3; // Max base64 size for API (under Vercel's 4.5MB limit)
+const MAX_BASE64_SIZE_BYTES = MAX_BASE64_SIZE_MB * 1024 * 1024;
 
 /**
  * Centralized error messages for consistent user-facing error handling
@@ -17,6 +20,7 @@ const ErrorMessages = {
     INVALID_PROMPT: 'Please enter a valid prompt.',
     INVALID_FILE: 'Invalid file type. Please use JPG, PNG, or WEBP',
     FILE_TOO_LARGE: 'File too large. Maximum size is 10MB',
+    PAYLOAD_TOO_LARGE: 'Image is too large to process. Please use a smaller image.',
     UNKNOWN: 'An unexpected error occurred. Please try again.'
 };
 
@@ -32,6 +36,12 @@ function getUserFriendlyError(error) {
     if (message.includes('network') || message.includes('fetch') || 
         message.includes('failed to fetch') || message.includes('networkerror')) {
         return ErrorMessages.NETWORK_ERROR;
+    }
+    
+    // Payload too large (413 error)
+    if (message.includes('413') || message.includes('too large') || 
+        message.includes('payload') || message.includes('content too large')) {
+        return ErrorMessages.PAYLOAD_TOO_LARGE;
     }
     
     // Rate limiting
@@ -155,6 +165,105 @@ function fileToBase64(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
+}
+
+/**
+ * Compress an image to fit within size limits
+ * @param {string} base64Image - Base64 encoded image (data URL format)
+ * @param {number} [maxDimension=2048] - Maximum width/height
+ * @param {number} [maxSizeBytes=3145728] - Maximum file size in bytes (3MB default)
+ * @param {number} [initialQuality=0.9] - Starting quality for compression
+ * @returns {Promise<string>} Compressed base64 image
+ */
+async function compressImage(base64Image, maxDimension = MAX_IMAGE_DIMENSION, maxSizeBytes = MAX_BASE64_SIZE_BYTES, initialQuality = 0.9) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            try {
+                // Calculate new dimensions maintaining aspect ratio
+                let { width, height } = img;
+                
+                if (width > maxDimension || height > maxDimension) {
+                    const ratio = Math.min(maxDimension / width, maxDimension / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+                
+                // Create canvas and draw resized image
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Determine output format (prefer JPEG for photos, PNG for transparency)
+                const hasTransparency = base64Image.includes('image/png');
+                const outputFormat = hasTransparency ? 'image/png' : 'image/jpeg';
+                
+                // Progressive quality reduction to meet size target
+                let quality = initialQuality;
+                let result = canvas.toDataURL(outputFormat, quality);
+                
+                // For JPEG, progressively reduce quality until under size limit
+                if (outputFormat === 'image/jpeg') {
+                    while (result.length > maxSizeBytes && quality > 0.1) {
+                        quality -= 0.1;
+                        result = canvas.toDataURL(outputFormat, quality);
+                    }
+                }
+                
+                // If still too large, reduce dimensions further
+                if (result.length > maxSizeBytes) {
+                    const scaleFactor = Math.sqrt(maxSizeBytes / result.length);
+                    const newWidth = Math.round(width * scaleFactor);
+                    const newHeight = Math.round(height * scaleFactor);
+                    
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                    
+                    result = canvas.toDataURL(outputFormat, quality);
+                }
+                
+                console.log(`Image compressed: ${(base64Image.length / 1024 / 1024).toFixed(2)}MB → ${(result.length / 1024 / 1024).toFixed(2)}MB`);
+                resolve(result);
+            } catch (error) {
+                reject(new Error('Failed to compress image: ' + error.message));
+            }
+        };
+        
+        img.onerror = () => reject(new Error('Failed to load image for compression'));
+        img.src = base64Image;
+    });
+}
+
+/**
+ * Check if an image needs compression
+ * @param {string} base64Image - Base64 encoded image
+ * @returns {boolean} True if image exceeds size limit
+ */
+function needsCompression(base64Image) {
+    return base64Image && base64Image.length > MAX_BASE64_SIZE_BYTES;
+}
+
+/**
+ * Prepare an image for API upload (compress if needed)
+ * @param {string} base64Image - Base64 encoded image
+ * @returns {Promise<string>} Compressed/optimized base64 image
+ */
+async function prepareImageForUpload(base64Image) {
+    if (!base64Image) {
+        throw new Error('No image provided');
+    }
+    
+    // Check if compression is needed
+    if (needsCompression(base64Image)) {
+        console.log(`Image too large (${(base64Image.length / 1024 / 1024).toFixed(2)}MB), compressing...`);
+        return await compressImage(base64Image);
+    }
+    
+    return base64Image;
 }
 
 /**

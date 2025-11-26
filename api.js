@@ -181,6 +181,9 @@ async function analyzeImage(base64Image, prompt = "Analyze this image and descri
     }
 
     try {
+        // Compress image if needed to fit within API limits
+        const preparedImage = await prepareImageForUpload(base64Image);
+        
         const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {
@@ -188,7 +191,7 @@ async function analyzeImage(base64Image, prompt = "Analyze this image and descri
             },
             body: JSON.stringify({
                 prompt: sanitizedPrompt,
-                image: base64Image
+                image: preparedImage
             })
         });
 
@@ -228,6 +231,9 @@ async function editImage(base64Image, prompt, model = null) {
     const selectedModel = model || currentEditModel;
 
     try {
+        // Compress image if needed to fit within API limits
+        const preparedImage = await prepareImageForUpload(base64Image);
+        
         const response = await fetch('/api/edit', {
             method: 'POST',
             headers: {
@@ -235,7 +241,7 @@ async function editImage(base64Image, prompt, model = null) {
             },
             body: JSON.stringify({
                 prompt: sanitizedPrompt,
-                image: base64Image,
+                image: preparedImage,
                 model: selectedModel
             })
         });
@@ -291,9 +297,9 @@ async function enhancePromptWithAI(userPrompt, base64Image = null) {
             prompt: sanitizedPrompt
         };
 
-        // Include image if provided
+        // Include image if provided (compress if needed)
         if (base64Image) {
-            requestBody.image = base64Image;
+            requestBody.image = await prepareImageForUpload(base64Image);
         }
 
         const response = await fetch('/api/enhance', {
