@@ -21,11 +21,15 @@
             <div class="mode-toggle">
                 <button class="mode-btn active" data-mode="generate">
                     <i data-lucide="image-plus"></i>
-                    Generate Mode
+                    Generate
                 </button>
                 <button class="mode-btn" data-mode="edit">
                     <i data-lucide="pencil"></i>
-                    Edit Mode
+                    Edit
+                </button>
+                <button class="mode-btn" data-mode="chat">
+                    <i data-lucide="message-circle"></i>
+                    Chat
                 </button>
             </div>
         </div>
@@ -115,6 +119,65 @@
                             <i data-lucide="image"></i>
                             <p>No image generated yet</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section (Chat Mode) -->
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <button id="selectChatModelBtn" class="btn-secondary model-selector-btn">
+                        <i data-lucide="cpu"></i>
+                        <span id="selectedChatModelName">Claude Sonnet 4.5</span>
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                    <button id="clearChatBtn" class="btn-secondary clear-chat-btn" title="Clear chat">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-welcome">
+                        <div class="welcome-icon">
+                            <i data-lucide="sparkles"></i>
+                        </div>
+                        <h2>How can I help you today?</h2>
+                        <p>Ask me anything - I'm here to assist with coding, writing, analysis, and more.</p>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <div class="chat-input-row">
+                        <button id="webSearchToggle" class="icon-btn web-search-btn" title="Toggle web search">
+                            <i data-lucide="globe"></i>
+                        </button>
+                        <textarea id="chatInput" rows="1" placeholder="Type your message here..."></textarea>
+                        <button id="sendChatBtn" class="icon-btn primary-icon-btn" title="Send message">
+                            <i data-lucide="arrow-up"></i>
+                        </button>
+                    </div>
+                    <div class="chat-input-hints">
+                        <span id="webSearchStatus" class="web-search-status">
+                            <i data-lucide="globe"></i>
+                            Web search off
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Model Selector Modal -->
+        <div class="modal-overlay" id="chatModelModalOverlay">
+            <div class="modal" id="chatModelModal">
+                <div class="modal-header">
+                    <h2>Select Chat Model</h2>
+                    <button class="modal-close" id="closeChatModelModal" title="Close" aria-label="Close modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="model-list" id="chatModelList">
+                        <!-- Model list will be dynamically generated from JavaScript -->
                     </div>
                 </div>
             </div>
